@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "396400823677",
+    "project_id": "cyducks-satark",
+    "storage_bucket": "cyducks-satark.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:396400823677:android:a080c86e89251efbc6d014",
+        "android_client_info": {
+          "package_name": "org.cyducks.satark"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB4EsysFv_OuNKYlqpT5ZTHgXsuGA-_k00"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

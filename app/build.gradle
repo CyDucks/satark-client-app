@@ -1,0 +1,76 @@
+plugins {
+    alias(libs.plugins.android.application)
+    id 'com.google.gms.google-services'
+}
+
+android {
+    namespace 'org.cyducks.satark'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId "org.cyducks.satark"
+        minSdk 24
+        targetSdk 34
+        versionCode 1
+        versionName "1.0"
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    buildFeatures {
+        viewBinding true
+        buildConfig true
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+}
+
+dependencies {
+
+    implementation libs.appcompat
+    implementation libs.material
+    implementation libs.activity
+    implementation libs.constraintlayout
+    testImplementation libs.junit
+    androidTestImplementation libs.ext.junit
+    androidTestImplementation libs.espresso.core
+
+    implementation 'com.intuit.sdp:sdp-android:1.1.1'
+    implementation 'com.intuit.ssp:ssp-android:1.1.1'
+
+    implementation(platform(libs.firebase.bom))
+    implementation libs.firebase.auth
+    implementation libs.firebase.firestore
+    implementation libs.firebase.storage
+    implementation libs.firebase.ui.storage
+    implementation libs.firebase.database
+    implementation libs.firebase.messaging
+    implementation libs.firebase.functions
+
+    implementation libs.work.runtime
+    testImplementation libs.junit.jupiter
+
+    implementation libs.core.splashscreen
+
+    implementation libs.navigation.fragment
+    implementation libs.navigation.ui
+
+    implementation libs.guava
+    implementation libs.concurrent.futures
+
+    implementation libs.gson
+
+    implementation libs.play.services.maps
+    implementation libs.places
+
+    implementation libs.otp.view
+}
