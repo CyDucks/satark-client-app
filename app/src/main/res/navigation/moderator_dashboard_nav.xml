@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/moderator_dashboard_nav"
+    app:startDestination="@id/moderatorHomeFragment">
+
+    <fragment android:id="@+id/moderatorHomeFragment"
+        android:name="org.cyducks.satark.dashboard.moderator.ui.HomeFragment"
+        android:label="fragment_moderator_home"
+        tools:layout="@layout/fragment_home">
+        <action
+            android:id="@+id/action_moderatorHomeFragment_to_reportsViewFragment"
+            app:destination="@id/reportsViewFragment" />
+    </fragment>
+
+    <fragment android:id="@+id/reportsViewFragment"
+        android:name="org.cyducks.satark.dashboard.moderator.ui.ReportsViewFragment"
+        android:label="fragment_report_view"
+        tools:layout="@layout/fragment_reports_view"
+        />
+</navigation>

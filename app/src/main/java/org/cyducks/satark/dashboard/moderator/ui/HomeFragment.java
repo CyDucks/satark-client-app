@@ -9,9 +9,10 @@ import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
+import androidx.navigation.Navigation;
 
 
-
+import org.cyducks.satark.R;
 import org.cyducks.satark.databinding.FragmentHomeBinding;
 
 
@@ -36,6 +37,10 @@ public class HomeFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         viewBinding = FragmentHomeBinding.inflate(getLayoutInflater());
+        viewBinding.mapButton.setOnClickListener(v -> {
+            Navigation.findNavController(v).navigate(R.id.action_moderatorHomeFragment_to_reportsViewFragment);
+        });
+
 
 
         return viewBinding.getRoot();
