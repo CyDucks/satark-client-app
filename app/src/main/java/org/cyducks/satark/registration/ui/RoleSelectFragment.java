@@ -63,6 +63,7 @@ public class RoleSelectFragment extends Fragment {
             }
             else if(viewBinding.driverCard.isChecked()) {
                 viewModel.setUserRole(UserRole.CIVILIAN);
+                viewModel.setFormCompletionStatus(true);
                 Navigation.findNavController(v).navigate(R.id.action_roleSelectFragment_to_registrationSuccessFragment);
             }
 

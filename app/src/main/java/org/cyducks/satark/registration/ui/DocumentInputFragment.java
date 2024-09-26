@@ -65,6 +65,7 @@ public class DocumentInputFragment extends Fragment {
 
             viewModel.setAadhaarNumber(viewBinding.aadhaarNo.getText().toString());
             viewModel.setAadhaarUri(aadhaarUri);
+            viewModel.setFormCompletionStatus(true);
         });
 
         ActivityResultLauncher<String[]> getAdhaarUri = registerForActivityResult(new ActivityResultContracts.OpenDocument(),

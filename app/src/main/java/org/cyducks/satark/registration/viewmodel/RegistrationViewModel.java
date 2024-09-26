@@ -17,6 +17,8 @@ public class RegistrationViewModel extends ViewModel {
     private final MutableLiveData<String> aadhaarNumberLiveData;
     private final MutableLiveData<Uri> aadhaarUri;
 
+    private final MutableLiveData<Boolean> isFormCompleted;
+
     private final MutableLiveData<Map<String, Object>> driverAmbulance;
 
     public RegistrationViewModel() {
@@ -24,6 +26,7 @@ public class RegistrationViewModel extends ViewModel {
         aadhaarNumberLiveData = new MutableLiveData<>(null);
         driverAmbulance = new MutableLiveData<>(new HashMap<>());
         aadhaarUri = new MutableLiveData<>(null);
+        isFormCompleted = new MutableLiveData<>(false);
     }
 
     public void setUserRole(UserRole role) {
@@ -58,4 +61,11 @@ public class RegistrationViewModel extends ViewModel {
         this.aadhaarUri.setValue(aadhaarUri);
     }
 
+    public MutableLiveData<Boolean> getFormCompletionStatus() {
+        return isFormCompleted;
+    }
+
+    public void setFormCompletionStatus(boolean isComplete) {
+        this.isFormCompleted.setValue(isComplete);
+    }
 }

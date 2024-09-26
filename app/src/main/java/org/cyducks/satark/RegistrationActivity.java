@@ -1,6 +1,7 @@
 package org.cyducks.satark;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
@@ -51,12 +52,12 @@ public class RegistrationActivity extends AppCompatActivity {
         authViewModel = new ViewModelProvider(this).get(AuthViewModel.class);
 
 
-        viewModel.getAadhaarUri().observe(this, aadhaarUri -> {
-
+        viewModel.getFormCompletionStatus().observe(this, formCompleted -> {
+            Log.d("MYAPP", "onCreate: " + formCompleted);
             FirebaseUser currentUser = authViewModel.getCurrentUser().getValue();
             String aadhaarNumber = viewModel.getAadhaarNumberLiveData().getValue();
 
-            if( viewModel.getUserRole().getValue() != null && viewModel.getUserRole().getValue() != UserRole.UNASSIGNED && aadhaarNumber != null && aadhaarNumber.length() == 12 && aadhaarUri != null) {
+            if( viewModel.getUserRole().getValue() != null && viewModel.getUserRole().getValue() != UserRole.UNASSIGNED && formCompleted) {
                 // chain two work requests
                 // 1. create an entry in the user role collection
                 // 2. create an entry in the driver/owner collection
@@ -80,30 +81,21 @@ public class RegistrationActivity extends AppCompatActivity {
                 OneTimeWorkRequest.Builder registrationRequestBuilder = new OneTimeWorkRequest.Builder(UserRegistrationWorker.class);
 
                 if(viewModel.getUserRole().getValue().equals(UserRole.CIVILIAN)) {
-                    Map<String, Object> driverAmbulance = viewModel.getDriverAmbulance().getValue();
-
-                    if(driverAmbulance.isEmpty()) {
-                        Toast.makeText(this, "Driver Ambulance is null.", Toast.LENGTH_SHORT).show();
-                        return;
-                    }
 
                     registrationRequestBuilder
                             .setInputData(new Data.Builder()
-                                    .putString("aadhaar_number", aadhaarNumber)
                                     .putString("role", roleString)
                                     .putString("userId", userId)
-                                    .putString("aadhaarUriString", aadhaarUri.toString())
-                                    .putAll(driverAmbulance)
                                     .build());
 
                 }
-                else if(viewModel.getUserRole().getValue().equals(UserRole.MODERATOR)) {
+                else if(viewModel.getUserRole().getValue().equals(UserRole.MODERATOR) && viewModel.getAadhaarUri().getValue() != null) {
                     registrationRequestBuilder
                             .setInputData(new Data.Builder()
                                     .putString("aadhaar_number", aadhaarNumber)
                                     .putString("role", roleString)
                                     .putString("userId", userId)
-                                    .putString("aadhaarUriString", aadhaarUri.toString())
+                                    .putString("aadhaarUriString", viewModel.getAadhaarUri().getValue().toString())
                                     .build());
 
                 }
