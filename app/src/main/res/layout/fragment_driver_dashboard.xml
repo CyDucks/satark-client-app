@@ -9,7 +9,9 @@
 
     <androidx.fragment.app.FragmentContainerView
         android:id="@+id/driver_bottom_nav_container"
-        android:name="org.cyducks.satark.dashboard.civilian.ui.HomeFragment"
+        android:name="androidx.navigation.fragment.NavHostFragment"
+        app:defaultNavHost="true"
+        app:navGraph="@navigation/civilian_dashboard_nav"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_alignParentStart="true"

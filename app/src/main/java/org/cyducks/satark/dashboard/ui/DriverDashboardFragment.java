@@ -91,6 +91,15 @@ public class DriverDashboardFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        dashboardViewModel = new ViewModelProvider(requireActivity()).get(DashboardViewModel.class);
+
+        if(getArguments() != null) {
+            this.userRole = UserRole.valueOf(getArguments().getString("role"));
+        } else {
+            this.userRole = UserRole.UNASSIGNED;
+        }
+
+        dashboardViewModel.setUserRole(userRole);
 
     }
 
