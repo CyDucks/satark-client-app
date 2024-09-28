@@ -57,29 +57,8 @@ public class UserRegistrationWorker extends ListenableWorkerAdapter {
                     break;
                 case "civilian":
                     collection = "civilians";
-
-                    Map<String, Object> driverAmbulance = new HashMap<>();
-
-                    String ambulanceUid = UUID.randomUUID().toString();
-                    String ambulanceType = getInputData().getString("ambulance_type");
-                    String vehicleNumber = getInputData().getString("vehicle_number");
-                    String vehicleType = getInputData().getString("vehicle_type");
-
-
-                    if(ambulanceType == null || vehicleType == null || vehicleNumber == null || aadhaarNumber == null || aadhaarUriString == null) {
-                        callback.onFailure(new IllegalArgumentException("ambulanceDriver parameters are null"));
-                        return;
-                    }
-
-                    driverAmbulance.put("id", ambulanceUid);
-                    driverAmbulance.put("ambulance_type", ambulanceType);
-                    driverAmbulance.put("vehicle_number", vehicleNumber);
-                    driverAmbulance.put("vehicle_type", vehicleType);
-
-
                     inputData.put("user_id", userId);
-                    inputData.put("ambulance", driverAmbulance);
-                    inputData.put("aadhaar_number", aadhaarNumber);
+
 
                     break;
                 default:
