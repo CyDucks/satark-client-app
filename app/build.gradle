@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     id 'com.google.gms.google-services'
     id 'com.google.android.libraries.mapsplatform.secrets-gradle-plugin'
+    id 'com.google.protobuf'
 }
 
 android {
@@ -38,6 +39,27 @@ android {
         propertiesFileName="secrets.properties"
         defaultPropertiesFileName="local.defaults.properties"
         ignoreList.add("sdk.*")
+    }
+
+    protobuf {
+        protoc { artifact = 'com.google.protobuf:protoc:3.25.1'}
+        plugins {
+            grpc {
+                artifact = 'io.grpc:protoc-gen-grpc-java:1.66.0'
+            }
+        }
+        generateProtoTasks {
+            all().each {task ->
+                task.builtins {
+                    java {option 'lite'}
+                }
+                task.plugins {
+                    grpc {
+                        option 'lite'
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -80,5 +102,10 @@ dependencies {
     implementation libs.places
 
     implementation libs.otp.view
+
+    implementation 'io.grpc:grpc-okhttp:1.66.0' // CURRENT_GRPC_VERSION
+    implementation 'io.grpc:grpc-protobuf-lite:1.66.0' // CURRENT_GRPC_VERSION
+    implementation 'io.grpc:grpc-stub:1.66.0' // CURRENT_GRPC_VERSION
+    implementation 'org.apache.tomcat:annotations-api:6.0.53'
 
 }
