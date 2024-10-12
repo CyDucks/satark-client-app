@@ -13,6 +13,7 @@ import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
 
 public class CloudMessagingService extends FirebaseMessagingService {
+    private static final String MASS_REPORT_EVENT = "org.cyducks.satark.MASS_REPORT_EVENT";
     public CloudMessagingService() {
     }
 
@@ -33,10 +34,13 @@ public class CloudMessagingService extends FirebaseMessagingService {
     public void onMessageReceived(@NonNull RemoteMessage message) {
         super.onMessageReceived(message);
         Log.d("CloudMessagingService", "onMessageReceived: " + message.getSenderId());
-        Intent intent = new Intent("mass_report_receipt");
+        if(message.getData().containsKey("event_type")) {
+            Intent intent = new Intent(MASS_REPORT_EVENT);
 
-        LocalBroadcastManager broadcastManager = LocalBroadcastManager.getInstance(getApplicationContext());
+            LocalBroadcastManager broadcastManager = LocalBroadcastManager.getInstance(getApplicationContext());
 
-        broadcastManager.sendBroadcast(intent);
+            broadcastManager.sendBroadcast(intent);
+        }
+
     }
 }
