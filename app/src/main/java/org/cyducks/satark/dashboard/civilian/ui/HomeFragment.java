@@ -24,14 +24,23 @@ import androidx.work.WorkManager;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
+import org.cyducks.generated.Report;
+import org.cyducks.generated.ReportServiceGrpc;
 import org.cyducks.satark.dashboard.viewmodel.DashboardViewModel;
 import org.cyducks.satark.databinding.FragmentHomeDriverBinding;
+import org.cyducks.satark.grpc.GrpcRunnable;
 import org.cyducks.satark.grpc.GrpcWorker;
+import org.cyducks.satark.grpc.ReportStreamRunnable;
 
 import java.util.Random;
 
+import io.grpc.ManagedChannel;
+import io.grpc.ManagedChannelBuilder;
+import io.grpc.stub.StreamObserver;
+
 
 public class HomeFragment extends Fragment {
+    private static final String TAG = "CivilianHomeFragment";
     FragmentHomeDriverBinding viewBinding;
     DashboardViewModel dashboardViewModel;
 
@@ -58,16 +67,51 @@ public class HomeFragment extends Fragment {
         dashboardViewModel = new ViewModelProvider(requireActivity()).get(DashboardViewModel.class);
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
 
+        viewBinding.liveReportButton.setOnClickListener(v -> {
+            GrpcRunnable runnable = new ReportStreamRunnable("H7trkTwIVzOHMKYLryOgIkZ8vn23", new StreamObserver<Report>() {
+                @Override
+                public void onNext(Report value) {
+
+                }
+
+                @Override
+                public void onError(Throwable t) {
+
+                }
+
+                @Override
+                public void onCompleted() {
+
+                }
+            });
+            ManagedChannel channel = ManagedChannelBuilder.forAddress("10.0.2.2", 9000).usePlaintext().build();
+
+            try {
+                runnable.run(ReportServiceGrpc.newBlockingStub(channel), ReportServiceGrpc.newStub(channel));
+            } catch (Exception e) {
+                Log.d(TAG, "onCreateView: " + e);
+            }
+        });
+
 
         viewBinding.reportButton.setOnClickListener(v -> {
 
             Random random = new Random();
 
-            // Generate random latitude between -90 and 90
-            float latitude = (float) (-90.0 + (90.0 - (-90.0)) * random.nextFloat());
 
-            // Generate random longitude between -180 and 180
-            float longitude = (float) (-180.0 + (180.0 - (-180.0)) * random.nextFloat());
+            // Latitude range for Nagpur
+            float minLatitude = 21.0725f;
+            float maxLatitude = 21.2050f;
+
+            // Longitude range for Nagpur
+            float minLongitude = 79.0020f;
+            float maxLongitude = 79.1690f;
+
+
+            // Generate random latitude and longitude within the specified range
+            float latitude = minLatitude + (maxLatitude - minLatitude) * random.nextFloat();
+            float longitude = minLongitude + (maxLongitude - minLongitude) * random.nextFloat();
+
 
 
             assert user != null;

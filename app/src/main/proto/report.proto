@@ -21,6 +21,11 @@ message ReportAck {
   int32 status = 1;
 }
 
+message ReportRequest {
+  string moderator_id = 1;
+}
+
 service ReportService {
   rpc sendReport(Report) returns (ReportAck) {}
+  rpc getLiveReports(ReportRequest) returns (stream Report) {}
 }
