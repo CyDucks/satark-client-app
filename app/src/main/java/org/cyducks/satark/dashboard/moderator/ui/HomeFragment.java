@@ -71,6 +71,10 @@ public class HomeFragment extends Fragment {
             Navigation.findNavController(v).navigate(R.id.action_moderatorHomeFragment_to_reportsViewFragment);
         });
 
+        viewBinding.createConflictZoneButton.setOnClickListener(v -> {
+            Navigation.findNavController(v).navigate(R.id.action_moderatorHomeFragment_to_zoneCreationFragment);
+        });
+
         return viewBinding.getRoot();
     }
 

@@ -12,6 +12,9 @@
         <action
             android:id="@+id/action_moderatorHomeFragment_to_reportsViewFragment"
             app:destination="@id/reportsViewFragment" />
+        <action
+            android:id="@+id/action_moderatorHomeFragment_to_zoneCreationFragment"
+            app:destination="@id/zoneCreationFragment" />
     </fragment>
 
     <fragment android:id="@+id/reportsViewFragment"
@@ -19,4 +22,9 @@
         android:label="fragment_report_view"
         tools:layout="@layout/fragment_reports_view"
         />
+    <fragment
+        android:id="@+id/zoneCreationFragment"
+        android:name="org.cyducks.satark.dashboard.moderator.ui.ZoneCreationFragment"
+        android:label="fragment_zone_creation"
+        tools:layout="@layout/fragment_zone_creation" />
 </navigation>
