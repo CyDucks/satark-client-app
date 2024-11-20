@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
+import android.util.JsonReader;
 import android.util.Log;
 
 import androidx.room.Room;
@@ -28,7 +29,10 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
@@ -45,7 +49,8 @@ public class HeatMapRepository {
     private static final String GEOJSON_FILENAME = "crimes.geojson";
     private static final String FIREBASE_PATH = "heatmap/crimes.geojson";
     private static final String TAG = "HeatMapRepository";
-    private static final int BATCH_SIZE = 1000;
+    private static final int BATCH_SIZE = Runtime.getRuntime().maxMemory() < 100 * 1024 * 1024 ?
+            500 : 100;
 
     private final Context context;
     private final FirebaseStorage firebaseStorage;
@@ -187,37 +192,94 @@ public class HeatMapRepository {
 
     private void updateDatabase() throws Exception {
         File localFile = new File(context.getFilesDir(), GEOJSON_FILENAME);
-        String jsonStr = null;
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-            jsonStr = new String(Files.readAllBytes(localFile.toPath()));
+        try(BufferedReader bufferedReader = new BufferedReader(new FileReader(localFile));
+            JsonReader jsonReader = new JsonReader(bufferedReader)) {
+
+            List<CrimeLocation> locationBatch = new ArrayList<>(BATCH_SIZE);
+
+            jsonReader.beginObject();
+            while (jsonReader.hasNext()) {
+                String name = jsonReader.nextName();
+                if("features".equals(name)) {
+                    jsonReader.beginArray();
+
+                    while(jsonReader.hasNext()) {
+                        CrimeLocation location = parseFeature(jsonReader);
+                        locationBatch.add(location);
+
+                        if(locationBatch.size() >= BATCH_SIZE) {
+                            crimeLocationDao.insertAll(locationBatch);
+                            locationBatch.clear();
+                        }
+                    }
+
+                    jsonReader.endArray();
+                } else {
+                    jsonReader.skipValue();
+                }
+            }
+            jsonReader.endObject();
+
+            if(!locationBatch.isEmpty()) {
+                crimeLocationDao.insertAll(locationBatch);
+            }
+
+        } catch (IOException e) {
+            Log.e(TAG, "updateDatabase: error reading json file", e);
         }
-
-        assert jsonStr != null;
-        JSONObject geoJson = new JSONObject(jsonStr);
-        JSONArray features = geoJson.getJSONArray("features");
-
-        List<CrimeLocation> locations = new ArrayList<>();
-
-        for (int i = 0; i < features.length(); i++) {
-            JSONObject feature = features.getJSONObject(i);
-            JSONObject geometry = feature.getJSONObject("geometry");
-            JSONArray coordinates = geometry.getJSONArray("coordinates");
-            JSONObject properties = feature.getJSONObject("properties");
-
-            CrimeLocation location = new CrimeLocation();
-            location.setLongitude(coordinates.getDouble(0));
-            location.setLatitude(coordinates.getDouble(1));
-            location.setTimestamp(properties.getString("timestamp"));
-            location.setCrimeType(properties.getInt("crime_type"));
-            location.setCrimeDescription(properties.getString("crime_description"));
-
-            locations.add(location);
-        }
-
-        // Update database
-        crimeLocationDao.deleteAll();
-        crimeLocationDao.insertAll(locations);
     }
+
+    private CrimeLocation parseFeature(JsonReader reader) throws IOException {
+        CrimeLocation location = new CrimeLocation();
+
+        reader.beginObject();
+        while (reader.hasNext()) {
+            String name = reader.nextName();
+            switch (name) {
+                case "geometry":
+                    reader.beginObject();
+                    while (reader.hasNext()) {
+                        String geometryName = reader.nextName();
+                        if ("coordinates".equals(geometryName)) {
+                            reader.beginArray();
+                            location.setLongitude(reader.nextDouble());
+                            location.setLatitude(reader.nextDouble());
+                            reader.endArray();
+                        } else {
+                            reader.skipValue();
+                        }
+                    }
+                    reader.endObject();
+                    break;
+                case "properties":
+                    reader.beginObject();
+                    while (reader.hasNext()) {
+                        String propName = reader.nextName();
+                        switch (propName) {
+                            case "timestamp":
+                                location.setTimestamp(reader.nextString());
+                                break;
+                            case "crime_type":
+                                location.setCrimeType(reader.nextInt());
+                                break;
+                            case "crime_description":
+                                location.setCrimeDescription(reader.nextString());
+                                break;
+                            default:
+                                reader.skipValue();
+                        }
+                    }
+                    reader.endObject();
+                    break;
+                default:
+                    reader.skipValue();
+            }
+        }
+        reader.endObject();
+
+        return location;
+    }
+
 
     @SuppressLint("CheckResult")
     public Single<GeoJsonLayer> getHeatmapLayer(GoogleMap map) {

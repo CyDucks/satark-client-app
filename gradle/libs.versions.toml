@@ -1,5 +1,6 @@
 [versions]
-agp = "8.7.0"
+agp = "8.7.2"
+adapterRxjava3 = "2.9.0"
 androidMapsUtils = "3.8.0"
 circleimageview = "3.1.0"
 compiler = "4.14.2"
@@ -30,7 +31,9 @@ places = "3.5.0"
 playServicesMaps = "18.2.0"
 protobufGradlePlugin = "0.9.4"
 retrofit = "2.11.0"
-rxandroid = "3.0.2"
+roomCompiler = "2.6.1"
+roomRuntime = "2.6.1"
+rxandroid = "3.0.0"
 rxjava = "3.1.5"
 sdpAndroid = "1.1.1"
 secretsGradlePlugin = "2.0.1"
@@ -39,6 +42,7 @@ workRuntime = "2.9.0"
 junitJupiter = "5.8.1"
 
 [libraries]
+adapter-rxjava3 = { module = "com.squareup.retrofit2:adapter-rxjava3", version.ref = "adapterRxjava3" }
 android-maps-utils = { module = "com.google.maps.android:android-maps-utils", version.ref = "androidMapsUtils" }
 circleimageview = { module = "de.hdodenhof:circleimageview", version.ref = "circleimageview" }
 compiler = { module = "com.github.bumptech.glide:compiler", version.ref = "compiler" }
@@ -78,6 +82,8 @@ places = { module = "com.google.android.libraries.places:places", version.ref = 
 play-services-maps = { module = "com.google.android.gms:play-services-maps", version.ref = "playServicesMaps" }
 protobuf-gradle-plugin = { module = "com.google.protobuf:protobuf-gradle-plugin", version.ref = "protobufGradlePlugin" }
 retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofit" }
+room-compiler = { module = "androidx.room:room-compiler", version.ref = "roomCompiler" }
+room-runtime = { module = "androidx.room:room-runtime", version.ref = "roomRuntime" }
 rxandroid = { module = "io.reactivex.rxjava3:rxandroid", version.ref = "rxandroid" }
 rxjava = { module = "io.reactivex.rxjava3:rxjava", version.ref = "rxjava" }
 sdp-android = { module = "com.intuit.sdp:sdp-android", version.ref = "sdpAndroid" }
