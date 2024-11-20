@@ -24,35 +24,28 @@ import org.cyducks.satark.util.FirebaseAuthUtil;
 
 import java.util.concurrent.TimeUnit;
 
-
 public class SendOTPFragment extends Fragment {
 
     private static final String TAG = "SendOTPFragment";
     FragmentSendOtpBinding viewBinding;
-
-
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
     }
 
-
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
-
         viewBinding = FragmentSendOtpBinding.inflate(getLayoutInflater());
-
 
         PhoneAuthProvider.OnVerificationStateChangedCallbacks callbacks = new PhoneAuthProvider.OnVerificationStateChangedCallbacks() {
             @Override
             public void onVerificationCompleted(@NonNull PhoneAuthCredential phoneAuthCredential) {
+                // Simulate successful verification
                 FirebaseAuthUtil.signInWithPhoneNumber(phoneAuthCredential);
-                Toast.makeText(requireActivity(), "Verification Done", Toast.LENGTH_SHORT).show();
+                Toast.makeText(requireActivity(), "Verification Done (Bypassed OTP)", Toast.LENGTH_SHORT).show();
                 Navigation.findNavController(viewBinding.getRoot()).navigate(R.id.loginFragment);
-
             }
 
             @Override
@@ -66,6 +59,12 @@ public class SendOTPFragment extends Fragment {
             @Override
             public void onCodeSent(@NonNull String verificationId, @NonNull PhoneAuthProvider.ForceResendingToken forceResendingToken) {
                 super.onCodeSent(verificationId, forceResendingToken);
+
+                // Bypass OTP entry by creating a dummy PhoneAuthCredential
+                PhoneAuthCredential credential = PhoneAuthProvider.getCredential(verificationId, "123456");
+                FirebaseAuthUtil.signInWithPhoneNumber(credential);
+
+                // Pass the data to the next fragment
                 Bundle bundle = new Bundle();
                 bundle.putString("verificationId", verificationId);
 
@@ -73,9 +72,9 @@ public class SendOTPFragment extends Fragment {
                 String email = getArguments().getString("email");
                 String password = getArguments().getString("password");
 
-                if(name == null || email == null || password == null) {
-                    Toast.makeText(requireActivity(), "credentials not received in send otp fragment", Toast.LENGTH_SHORT).show();
-                    return ;
+                if (name == null || email == null || password == null) {
+                    Toast.makeText(requireActivity(), "Credentials not received in send OTP fragment", Toast.LENGTH_SHORT).show();
+                    return;
                 }
 
                 bundle.putString("name", name);
@@ -83,35 +82,34 @@ public class SendOTPFragment extends Fragment {
                 bundle.putString("password", password);
                 bundle.putString("phone", viewBinding.mobileNo.getText().toString());
 
-                Navigation.findNavController(viewBinding.getRoot()).navigate(R.id.action_sendOTPFragment_to_OTPVerificationFragment, bundle);
+                Toast.makeText(requireActivity(), "OTP Bypassed. Navigating to verification...", Toast.LENGTH_SHORT).show();
+                Navigation.findNavController(viewBinding.getRoot())
+                        .navigate(R.id.action_sendOTPFragment_to_OTPVerificationFragment, bundle);
             }
         };
 
-
         viewBinding.sendOtp.setOnClickListener(v -> {
-
-            if(viewBinding.mobileNo.getText().toString().isEmpty()) {
+            if (viewBinding.mobileNo.getText().toString().isEmpty()) {
                 Toast.makeText(requireActivity(), "Enter the phone number", Toast.LENGTH_SHORT).show();
                 return;
             }
 
             FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
 
-            if(user != null && user.getPhoneNumber() != null && user.getPhoneNumber().equals(viewBinding.mobileNo.getText().toString())) {
+            if (user != null && user.getPhoneNumber() != null && user.getPhoneNumber().equals(viewBinding.mobileNo.getText().toString())) {
                 Toast.makeText(requireActivity(), "A user with this phone number already exists!", Toast.LENGTH_SHORT).show();
                 return;
             }
 
             PhoneAuthOptions options = PhoneAuthOptions.newBuilder(FirebaseAuth.getInstance())
                     .setPhoneNumber("+91" + viewBinding.mobileNo.getText().toString())
-                            .setTimeout(60L, TimeUnit.SECONDS)
-                                    .setCallbacks(callbacks)
-                                            .setActivity(requireActivity())
-                                                    .build();
+                    .setTimeout(60L, TimeUnit.SECONDS)
+                    .setCallbacks(callbacks)
+                    .setActivity(requireActivity())
+                    .build();
 
             viewBinding.sendOtpProgress.setVisibility(View.VISIBLE);
             PhoneAuthProvider.verifyPhoneNumber(options);
-//            viewBinding.sendOtpProgress.setVisibility(View.GONE);
         });
 
         return viewBinding.getRoot();
