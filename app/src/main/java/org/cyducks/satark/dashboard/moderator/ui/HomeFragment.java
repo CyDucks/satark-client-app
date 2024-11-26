@@ -41,6 +41,7 @@ public class HomeFragment extends Fragment {
     private void enableLiveReportsView() {
         if(viewBinding != null) {
             viewBinding.liveReportButton.setVisibility(View.VISIBLE);
+            viewBinding.createConflictZoneButton.setVisibility(View.VISIBLE);
         }
     }
 

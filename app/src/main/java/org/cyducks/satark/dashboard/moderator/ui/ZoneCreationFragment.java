@@ -4,9 +4,11 @@ import android.annotation.SuppressLint;
 import android.graphics.Point;
 import android.os.Bundle;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.navigation.Navigation;
 
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -39,6 +41,14 @@ public class ZoneCreationFragment extends Fragment implements OnMapReadyCallback
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        OnBackPressedCallback callback = new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                Navigation.findNavController(viewBinding.getRoot()).navigateUp();
+            }
+        };
+
+        requireActivity().getOnBackPressedDispatcher().addCallback(this, callback);
     }
 
     @Override

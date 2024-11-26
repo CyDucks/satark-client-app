@@ -2,9 +2,11 @@ package org.cyducks.satark.dashboard.moderator.ui;
 
 import android.os.Bundle;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.navigation.Navigation;
 
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -46,7 +48,6 @@ public class ReportsViewFragment extends Fragment implements OnMapReadyCallback 
     private static final AtomicReference<Boolean> requestSent = new AtomicReference<>(false);
     private GoogleMap googleMap;
     private DynamicClusterManager clusterManager;
-
 
     private final StreamObserver<Report> reportStreamObserver = new StreamObserver<Report>() {
         @Override
@@ -90,6 +91,14 @@ public class ReportsViewFragment extends Fragment implements OnMapReadyCallback 
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        OnBackPressedCallback callback = new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                Navigation.findNavController(viewBinding.getRoot()).navigateUp();
+            }
+        };
+
+        requireActivity().getOnBackPressedDispatcher().addCallback(this, callback);
 
     }
 
