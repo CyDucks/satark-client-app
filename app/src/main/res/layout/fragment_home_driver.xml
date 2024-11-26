@@ -102,6 +102,16 @@
             android:layout_gravity="end"
             android:layout_margin="12dp" />
 
+        <Button
+            android:id="@+id/signout_btn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Logout"
+            android:layout_gravity="end"
+            android:layout_marginTop="70dp"
+            android:layout_marginEnd="12dp"
+            />
+
         <com.google.android.material.floatingactionbutton.FloatingActionButton
             android:id="@+id/fabReport"
             android:layout_width="wrap_content"
