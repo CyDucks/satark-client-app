@@ -5,6 +5,7 @@ package org.cyducks.satark.dashboard.civilian.ui;
 import android.animation.ObjectAnimator;
 import android.animation.ValueAnimator;
 import android.annotation.SuppressLint;
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -28,6 +29,7 @@ import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
+import org.cyducks.satark.AuthActivity;
 import org.cyducks.satark.core.heatmap.HeatMapManager;
 import org.cyducks.satark.core.heatmap.domain.repository.HeatMapRepository;
 import org.cyducks.satark.core.heatmap.domain.viewmodel.HeatMapViewModel;
@@ -225,6 +227,13 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
         viewBinding.fabReport.setOnClickListener(v -> {
             ReportSheetFragment reportSheetFragment = new ReportSheetFragment();
             reportSheetFragment.show(getChildFragmentManager(), "DangerReport");
+        });
+
+        viewBinding.signoutBtn.setOnClickListener(v -> {
+            FirebaseAuth.getInstance().signOut();
+            Intent intent = new Intent(requireActivity(), AuthActivity.class);
+            startActivity(intent);
+            requireActivity().finish();
         });
 
         googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(21.1458, 79.0882), 15f));

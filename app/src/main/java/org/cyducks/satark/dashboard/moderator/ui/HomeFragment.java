@@ -19,6 +19,9 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.navigation.Navigation;
 
 
+import com.google.firebase.auth.FirebaseAuth;
+
+import org.cyducks.satark.AuthActivity;
 import org.cyducks.satark.R;
 import org.cyducks.satark.databinding.FragmentHomeBinding;
 
@@ -73,6 +76,13 @@ public class HomeFragment extends Fragment {
 
         viewBinding.createConflictZoneButton.setOnClickListener(v -> {
             Navigation.findNavController(v).navigate(R.id.action_moderatorHomeFragment_to_zoneCreationFragment);
+        });
+
+        viewBinding.logoutBtn.setOnClickListener(v -> {
+            FirebaseAuth.getInstance().signOut();
+            Intent intent = new Intent(requireActivity(), AuthActivity.class);
+            startActivity(intent);
+            requireActivity().finish();
         });
 
         return viewBinding.getRoot();
