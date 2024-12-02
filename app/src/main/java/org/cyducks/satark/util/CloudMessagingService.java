@@ -1,5 +1,7 @@
 package org.cyducks.satark.util;
 
+import static org.cyducks.satark.AppConstants.REST_SERVER_BASE_URL;
+
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -31,14 +33,13 @@ public class CloudMessagingService extends FirebaseMessagingService {
     private ZoneCache zoneCache;
     public CloudMessagingService() {
         Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl("http://10.0.2.2:8080")
+                .baseUrl(REST_SERVER_BASE_URL)
                 .addConverterFactory(GsonConverterFactory.create())
                 .addCallAdapterFactory(RxJava3CallAdapterFactory.create())
                 .build();
 
         geofenceApiService = retrofit.create(GeofenceApiService.class);
-        geofenceManager = new GeofenceManager(this);
-        zoneCache = new ZoneCache(this);
+
     }
 
     @Override
@@ -68,10 +69,12 @@ public class CloudMessagingService extends FirebaseMessagingService {
         }
 
         if(message.getData().containsKey("type")) {
+            geofenceManager = new GeofenceManager(this);
+            zoneCache = new ZoneCache(this);
             String type = message.getData().get("type");
             assert type != null;
             if(type.equals("NEW_ZONE")) {
-                String zoneId = message.getData().get("zoneId");
+                String zoneId = message.getData().get("zone_id");
                 setupZone(zoneId);
             }
         }

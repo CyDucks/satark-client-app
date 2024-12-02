@@ -1,5 +1,7 @@
 package org.cyducks.satark.dashboard.moderator.ui;
 
+import static org.cyducks.satark.AppConstants.GRPC_SERVER_ADDRESS;
+
 import android.os.Bundle;
 
 import androidx.activity.OnBackPressedCallback;
@@ -117,7 +119,7 @@ public class ReportsViewFragment extends Fragment implements OnMapReadyCallback 
 
         if(!requestSent.get()) {
             GrpcRunnable fetchReportsRunnable = new ReportStreamRunnable("H7trkTwIVzOHMKYLryOgIkZ8vn23", reportStreamObserver);
-            ManagedChannel managedChannel = ManagedChannelBuilder.forAddress("10.0.2.2", 9000).usePlaintext().build();
+            ManagedChannel managedChannel = ManagedChannelBuilder.forAddress(GRPC_SERVER_ADDRESS, 9000).usePlaintext().build();
 
             try {
                 fetchReportsRunnable.run(ReportServiceGrpc.newBlockingStub(managedChannel), ReportServiceGrpc.newStub(managedChannel));

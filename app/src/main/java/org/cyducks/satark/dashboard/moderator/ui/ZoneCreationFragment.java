@@ -1,5 +1,7 @@
 package org.cyducks.satark.dashboard.moderator.ui;
 
+import static org.cyducks.satark.AppConstants.REST_SERVER_BASE_URL;
+
 import android.annotation.SuppressLint;
 import android.graphics.Point;
 import android.os.Bundle;
@@ -66,7 +68,7 @@ public class ZoneCreationFragment extends Fragment implements OnMapReadyCallback
         super.onCreate(savedInstanceState);
         setupBackPressHandler();
         Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl("http://10.0.2.2:8080")
+                .baseUrl(REST_SERVER_BASE_URL)
                 .addConverterFactory(GsonConverterFactory.create())
                 .addCallAdapterFactory(RxJava3CallAdapterFactory.create())
                 .build();
