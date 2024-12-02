@@ -1,5 +1,7 @@
 package org.cyducks.satark.grpc;
 
+import static org.cyducks.satark.AppConstants.GRPC_SERVER_ADDRESS;
+
 import android.content.Context;
 import android.util.Log;
 
@@ -72,6 +74,6 @@ public class GrpcWorker extends Worker {
     }
 
     private ManagedChannel getChannel(Data inputData) {
-        return ManagedChannelBuilder.forAddress("10.0.2.2", 9000).usePlaintext().build();
+        return ManagedChannelBuilder.forAddress(GRPC_SERVER_ADDRESS, 9000).usePlaintext().build();
     }
 }

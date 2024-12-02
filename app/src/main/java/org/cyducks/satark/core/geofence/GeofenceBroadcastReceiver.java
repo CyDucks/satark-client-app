@@ -12,8 +12,11 @@ import com.google.android.gms.location.GeofencingEvent;
 import java.util.List;
 
 public class GeofenceBroadcastReceiver extends BroadcastReceiver {
+    private static final String TAG = "GeofenceReceiver";
+
     @Override
     public void onReceive(Context context, Intent intent) {
+        Log.d(TAG, "GeofenceReceiver:onReceive called");
         GeofencingEvent geofencingEvent = GeofencingEvent.fromIntent(intent);
         
         if (geofencingEvent.hasError()) {

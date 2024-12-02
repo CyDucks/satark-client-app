@@ -134,12 +134,6 @@ public class DriverDashboardFragment extends Fragment {
                     }
                 });
 
-        if (checkPermissions()) {
-            startZoneMonitoring();
-        } else {
-            requestPermissions();
-        }
-
     }
 
     private void requestPermissions() {

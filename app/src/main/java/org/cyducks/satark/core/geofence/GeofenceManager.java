@@ -41,6 +41,8 @@ public class GeofenceManager {
         LatLngBounds bounds = getPolygonBounds(yellowZonePoints);
         LatLng center = bounds.getCenter();
         float radius = calculateRadius(bounds, center);
+        Log.d(TAG, "setupGeofence: radius: " + radius);
+        Log.d(TAG, "setupGeofence: center" + center);
 
         Geofence geofence = new Geofence.Builder()
                 .setRequestId(zone.getId())
