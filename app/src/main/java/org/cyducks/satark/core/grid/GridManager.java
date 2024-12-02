@@ -10,22 +10,27 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Polygon;
 import com.google.android.gms.maps.model.PolygonOptions;
-
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 
 public class GridManager {
     private static final double CELL_SIZE = 200.0;
-    private static final int GRID_COLOR = Color.argb(50, 33, 150, 243);
-    private static final int SELECTED_COLOR = Color.argb(100, 244, 67, 54);
+    private static final int GRID_COLOR = Color.argb(30, 33, 150, 243);
+    private static final int SELECTED_COLOR = Color.argb(80, 244, 67, 54);
 
-    private static final int BORDER_COLOR = Color.argb(100, 0, 0, 0);
+    private static final int BORDER_COLOR = Color.argb(255, 33, 150, 243);
+    private static final String TAG = "GridManager";
     private GoogleMap googleMap;
-    private List<Polygon> gridPolygons = new ArrayList<>();
-    private List<Polygon> selectedPolygons = new ArrayList<>();
+    private final List<Polygon> gridPolygons = new CopyOnWriteArrayList<>();
+    private final List<Polygon> selectedPolygons = new CopyOnWriteArrayList<>();
     private LatLngBounds visibleBounds;
+    private final GridOverlay gridOverlay;
+
+    public GridManager() {
+        gridOverlay = new GridOverlay();
+    }
 
     public void setupListeners() {
         googleMap.setOnCameraIdleListener(() -> {
@@ -38,6 +43,13 @@ public class GridManager {
     public void initializeGrid(GoogleMap map) {
         this.googleMap = map;
         setupListeners();
+        gridOverlay.initializeSelectionMode(map, gridPolygons);
+    }
+
+    public void toggleSelectionMode(boolean enabled) {
+        if(!enabled) {
+            clearSelection();
+        }
     }
 
     private void clearGrid() {
@@ -47,6 +59,12 @@ public class GridManager {
         gridPolygons.clear();
     }
 
+    public void clearSelection() {
+        for(Polygon polygon : selectedPolygons) {
+            deselectPolygon(polygon);
+        }
+        selectedPolygons.clear();
+    }
     public List<Polygon> getGridCells() {
         return this.gridPolygons;
     }
@@ -70,7 +88,7 @@ public class GridManager {
     private void drawCellPolygon(LatLng latLng) {
         PolygonOptions options = new PolygonOptions()
                 .add(calculateCellCorners(latLng))
-                .strokeWidth(20)
+                .strokeWidth(2)
                 .clickable(true)
                 .strokeColor(BORDER_COLOR)
                 .fillColor(GRID_COLOR);
@@ -131,6 +149,8 @@ public class GridManager {
         };
     }
 
+
+
     private double calculateLatStep() {
         return CELL_SIZE / 111000.0;
     }
@@ -138,6 +158,11 @@ public class GridManager {
     private double calculateLngStep(double latitude) {
         return CELL_SIZE / (111000.0 * Math.cos(Math.toRadians(latitude)));
     }
+
+    public List<Polygon> getSelectedPolygons() {
+        return selectedPolygons;
+    }
+
 
     public static class CellMetaData {
         String id;
@@ -148,6 +173,7 @@ public class GridManager {
             this.id = id;
             this.center = center;
             this.size = size;
+
         }
 
         @NonNull
@@ -159,5 +185,7 @@ public class GridManager {
                     ", size=" + size +
                     '}';
         }
+
     }
+
 }
