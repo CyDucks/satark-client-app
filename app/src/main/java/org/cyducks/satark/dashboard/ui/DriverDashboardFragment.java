@@ -1,7 +1,10 @@
 package org.cyducks.satark.dashboard.ui;
 
 
+import static androidx.core.content.ContextCompat.startForegroundService;
+
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -20,6 +23,7 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
@@ -44,10 +48,12 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.messaging.FirebaseMessaging;
 
 import org.cyducks.satark.AuthActivity;
 import org.cyducks.satark.R;
 import org.cyducks.satark.auth.viewmodel.AuthViewModel;
+import org.cyducks.satark.core.geofence.ZoneMonitoringService;
 import org.cyducks.satark.dashboard.viewmodel.DashboardViewModel;
 import org.cyducks.satark.databinding.FragmentDriverDashboardBinding;
 import org.cyducks.satark.util.UserRole;
@@ -65,6 +71,14 @@ import java.util.Objects;
 public class DriverDashboardFragment extends Fragment {
 
     private static final String TAG = "MYAPP";
+    @SuppressLint("InlinedApi") final String[] REQUIRED_PERMISSIONS = {
+            Manifest.permission.ACCESS_FINE_LOCATION,
+            Manifest.permission.ACCESS_BACKGROUND_LOCATION,
+            Manifest.permission.POST_NOTIFICATIONS
+    };
+
+    private static final int PERMISSION_REQUEST_CODE = 1001;
+
     private FragmentDriverDashboardBinding viewBinding;
 
     private DashboardViewModel dashboardViewModel;
@@ -110,7 +124,53 @@ public class DriverDashboardFragment extends Fragment {
 
         dashboardViewModel.setUserRole(userRole);
 
+        FirebaseMessaging.getInstance()
+                .subscribeToTopic("zone_updates")
+                .addOnCompleteListener(task -> {
+                    if(task.isSuccessful()) {
+                        Log.d(TAG, "onCreate: Subscribed to zone updates");
+                    } else {
+                        Log.d(TAG, "onCreate: " + task.getException());
+                    }
+                });
+
+        if (checkPermissions()) {
+            startZoneMonitoring();
+        } else {
+            requestPermissions();
+        }
+
     }
+
+    private void requestPermissions() {
+        ActivityCompat.requestPermissions(
+                requireActivity(),
+                REQUIRED_PERMISSIONS,
+                PERMISSION_REQUEST_CODE
+        );
+    }
+
+    private void startZoneMonitoring() {
+        Intent serviceIntent = new Intent(requireActivity(), ZoneMonitoringService.class);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            requireActivity().startForegroundService(serviceIntent);
+        } else {
+            requireActivity().startService(serviceIntent);
+        }
+    }
+
+    private boolean checkPermissions() {
+
+
+        for (String permission : REQUIRED_PERMISSIONS) {
+            if (ContextCompat.checkSelfPermission(requireActivity(), permission)
+                    != PackageManager.PERMISSION_GRANTED) {
+                return false;
+            }
+        }
+        return true;
+    }
+
 
 
     @Override
