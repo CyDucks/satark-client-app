@@ -127,7 +127,7 @@ public class HeatMapManager {
         if(provider == null){
             provider = new HeatmapTileProvider.Builder()
                     .data(locations)
-                    .radius(50)
+                    .radius(30)
                     .gradient(gradient)
                     .build();
         } else {

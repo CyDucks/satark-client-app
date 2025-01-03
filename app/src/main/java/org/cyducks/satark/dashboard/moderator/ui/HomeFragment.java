@@ -18,13 +18,12 @@ import androidx.fragment.app.Fragment;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.navigation.Navigation;
 
-
 import com.google.firebase.auth.FirebaseAuth;
 
 import org.cyducks.satark.AuthActivity;
 import org.cyducks.satark.R;
 import org.cyducks.satark.databinding.FragmentHomeBinding;
-
+import org.cyducks.satark.util.MassReportLocations;
 
 public class HomeFragment extends Fragment {
 
@@ -34,6 +33,10 @@ public class HomeFragment extends Fragment {
     private final BroadcastReceiver massReportReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
+            if (intent.hasExtra("locations")) {
+                String locations = intent.getStringExtra("locations");
+                MassReportLocations.getInstance().setLocations(locations);
+            }
             enableLiveReportsView();
         }
     };
@@ -62,6 +65,17 @@ public class HomeFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         viewBinding = FragmentHomeBinding.inflate(getLayoutInflater());
+
+        if(requireActivity().getIntent().hasExtra("event_type") &&
+                requireActivity().getIntent().getStringExtra("event_type").equals(MASS_REPORT_EVENT)) {
+            // Check if locations data exists in intent
+            if (requireActivity().getIntent().hasExtra("locations")) {
+                String locations = requireActivity().getIntent().getStringExtra("locations");
+                MassReportLocations.getInstance().setLocations(locations);
+            }
+            enableLiveReportsView();
+        }
+
         viewBinding.mapButton.setOnClickListener(v -> {
             Toast.makeText(requireActivity(), "Hello World", Toast.LENGTH_SHORT).show();
         });
@@ -76,6 +90,7 @@ public class HomeFragment extends Fragment {
         });
 
         viewBinding.createConflictZoneButton.setOnClickListener(v -> {
+            MassReportLocations.getInstance().shouldShowMarkers();
             Navigation.findNavController(v).navigate(R.id.action_moderatorHomeFragment_to_zoneCreationFragment);
         });
 

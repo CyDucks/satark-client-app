@@ -5,13 +5,17 @@ package org.cyducks.satark.dashboard.civilian.ui;
 import android.animation.ObjectAnimator;
 import android.animation.ValueAnimator;
 import android.annotation.SuppressLint;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.location.Location;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.LinearInterpolator;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -30,12 +34,17 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
 import org.cyducks.satark.AuthActivity;
+import org.cyducks.satark.core.MapConstants;
 import org.cyducks.satark.core.heatmap.HeatMapManager;
 import org.cyducks.satark.core.heatmap.domain.repository.HeatMapRepository;
-import org.cyducks.satark.core.heatmap.domain.viewmodel.HeatMapViewModel;
+import org.cyducks.satark.core.heatmap.domain.viewmodel.SettingsViewModel;
 import org.cyducks.satark.core.safetyscore.domain.SafetyScoreViewModel;
 import org.cyducks.satark.dashboard.viewmodel.DashboardViewModel;
 import org.cyducks.satark.databinding.FragmentHomeDriverBinding;
+import org.cyducks.satark.util.LocationUtil;
+
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import io.reactivex.rxjava3.disposables.CompositeDisposable;
 
@@ -48,9 +57,8 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
     SafetyScoreViewModel safetyScoreViewModel;
     private HeatMapRepository heatMapRepository;
     private final CompositeDisposable disposable = new CompositeDisposable();
+    private static final int REPORT_COOLDOWN_PERIOD_MS = 10000;
     WorkManager workManager;
-    private HeatMapViewModel heatMapViewModel;
-
 
 
     public HomeFragment() {
@@ -61,8 +69,21 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        heatMapRepository = new HeatMapRepository(requireContext());
+        SharedPreferences prefs = requireActivity().getSharedPreferences("app_prefs", Context.MODE_PRIVATE);
+        String city = prefs.getString("user_city", "Unknown");
+
+        try {
+            heatMapRepository = new HeatMapRepository(requireContext(), city);
+        } catch (UnsupportedOperationException e) {
+            heatMapRepository = null;
+        }
         workManager = WorkManager.getInstance(requireContext());
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+
     }
 
     @SuppressLint("DefaultLocale")
@@ -203,11 +224,15 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
     @SuppressLint("CheckResult")
     @Override
     public void onMapReady(@NonNull GoogleMap googleMap) {
+        SettingsViewModel settingsViewModel = new ViewModelProvider(requireActivity()).get(SettingsViewModel.class);
 
         // Setup HeatMap
-        HeatMapManager mapManager = new HeatMapManager(requireContext(), googleMap, heatMapRepository);
-        heatMapViewModel = new ViewModelProvider(requireActivity()).get(HeatMapViewModel.class);
-        heatMapViewModel.setHeatMapManager(mapManager);
+        if(heatMapRepository != null) {
+            HeatMapManager mapManager = new HeatMapManager(requireContext(), googleMap, heatMapRepository);
+            settingsViewModel.setHeatMapManager(mapManager);
+        }
+
+        final AtomicBoolean simulationMode = new AtomicBoolean(false);
 
         LatLng center = googleMap.getCameraPosition().target;
         safetyScoreViewModel.fetchSafetyScore(center.latitude, center.longitude);
@@ -225,6 +250,14 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
         });
 
         viewBinding.fabReport.setOnClickListener(v -> {
+            if (!simulationMode.get()) {
+                if(cooldownEnabled()) {
+                    showWarning();
+                    return;
+                }
+                saveClickTimestamp(System.currentTimeMillis());
+
+            }
             ReportSheetFragment reportSheetFragment = new ReportSheetFragment();
             reportSheetFragment.show(getChildFragmentManager(), "DangerReport");
         });
@@ -236,9 +269,91 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
             requireActivity().finish();
         });
 
+        settingsViewModel.getOperationMode().observe(getViewLifecycleOwner(), mode -> {
+            simulationMode.set(mode);
+            setMapLocation(mode, googleMap);
+        });
+
         googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(21.1458, 79.0882), 15f));
     }
 
+    private void updateButtonState() {
+        viewBinding.fabReport.setEnabled(!cooldownEnabled());
+    }
+
+    private void saveClickTimestamp(long time) {
+        SharedPreferences prefs = requireActivity().getSharedPreferences("app_prefs", Context.MODE_PRIVATE);
+        prefs.edit().putString("last_click_time", String.valueOf(time)).apply();
+    }
+
+    private boolean cooldownEnabled() {
+        long lastClickTime = getLastClickTime();
+        return System.currentTimeMillis() - lastClickTime < REPORT_COOLDOWN_PERIOD_MS;
+    }
+
+    private long getLastClickTime() {
+        SharedPreferences prefs = requireActivity().getSharedPreferences("app_prefs", Context.MODE_PRIVATE);
+        String lastClickTime = prefs.getString("last_click_time", null);
+
+        if(lastClickTime == null) {
+            return 0;
+        }
+
+        return Long.parseLong(lastClickTime);
+    }
+
+    private void showWarning() {
+        long timeLeft = (getLastClickTime() + REPORT_COOLDOWN_PERIOD_MS - System.currentTimeMillis()) / 1000;
+        Toast.makeText(requireContext(),
+                "Please wait " + timeLeft + " seconds before trying again",
+                Toast.LENGTH_SHORT).show();
+    }
+
+    private void setMapLocation(Boolean simulationMode, GoogleMap googleMap) {
+
+
+        if(simulationMode) {
+            LatLng mapLocation;
+            SharedPreferences prefs = requireActivity().getSharedPreferences("app_prefs", Context.MODE_PRIVATE);
+            if(!prefs.contains("user_city")) {
+                throw new IllegalStateException("user city not specified");
+            }
+
+
+            String city = prefs.getString("user_city", "Nagpur");
+            switch (city) {
+                case "Mumbai":
+                    mapLocation = MapConstants.MUMBAI_CENTER;
+                    break;
+                case "Delhi":
+                    mapLocation = MapConstants.DELHI_CENTER;
+                    break;
+                case "Pune":
+                    mapLocation = MapConstants.PUNE_CENTER;
+                    break;
+                case "Nagpur":
+                default:
+                    mapLocation = MapConstants.NAGPUR_CENTER;
+                    break;
+            }
+
+            googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(mapLocation, MapConstants.INITIAL_ZOOM));
+
+        } else {
+            LocationUtil locationUtil = new LocationUtil(requireActivity());
+            locationUtil.getCurrentLocation(new LocationUtil.LocationListener() {
+                @Override
+                public void onResult(Location location) {
+                    googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(location.getLatitude(), location.getLongitude()), MapConstants.INITIAL_ZOOM));
+                }
+
+                @Override
+                public void onError(String exception) {
+                    Toast.makeText(requireContext(), exception, Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
+    }
 
 
     @Override

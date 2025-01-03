@@ -16,7 +16,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 
 public class GridManager {
-    private static final double CELL_SIZE = 200.0;
+    private static final double CELL_SIZE = 300.0;
     private static final int GRID_COLOR = Color.argb(30, 33, 150, 243);
     private static final int SELECTED_COLOR = Color.argb(80, 244, 67, 54);
 

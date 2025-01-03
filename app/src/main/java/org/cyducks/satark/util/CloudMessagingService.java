@@ -28,7 +28,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 public class CloudMessagingService extends FirebaseMessagingService {
     private static final String MASS_REPORT_EVENT = "org.cyducks.satark.MASS_REPORT_EVENT";
-    private GeofenceApiService geofenceApiService;
+    private final GeofenceApiService geofenceApiService;
     private GeofenceManager geofenceManager;
     private ZoneCache zoneCache;
     public CloudMessagingService() {
@@ -60,12 +60,14 @@ public class CloudMessagingService extends FirebaseMessagingService {
         super.onMessageReceived(message);
         Log.d("CloudMessagingService", "onMessageReceived: " + message.getSenderId());
         Log.d("CloudMessagingService", "onMessageReceived: " + message.getData());
-        if(message.getData().containsKey("event_type")) {
+        if(message.getData().containsKey("event_type")) {MassReportLocations.getInstance().setLocations(message.getData().get("locations"));MassReportLocations.getInstance().setLocations(message.getData().get("locations"));
             Intent intent = new Intent(MASS_REPORT_EVENT);
+            intent.putExtra("locations", message.getData().get("locations"));
+            Log.d("CloudMessagingService", "Broadcasting locations: " +
+                    message.getData().get("locations"));
 
-            LocalBroadcastManager broadcastManager = LocalBroadcastManager.getInstance(getApplicationContext());
-
-            broadcastManager.sendBroadcast(intent);
+            LocalBroadcastManager.getInstance(getApplicationContext())
+                    .sendBroadcast(intent);
         }
 
         if(message.getData().containsKey("type")) {

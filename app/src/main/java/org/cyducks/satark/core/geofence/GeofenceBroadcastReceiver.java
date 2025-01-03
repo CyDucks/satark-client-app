@@ -18,7 +18,7 @@ public class GeofenceBroadcastReceiver extends BroadcastReceiver {
     public void onReceive(Context context, Intent intent) {
         Log.d(TAG, "GeofenceReceiver:onReceive called");
         GeofencingEvent geofencingEvent = GeofencingEvent.fromIntent(intent);
-        
+
         if (geofencingEvent.hasError()) {
             Log.e("GeofenceReceiver", "Error: " + geofencingEvent.getErrorCode());
             return;
@@ -29,7 +29,7 @@ public class GeofenceBroadcastReceiver extends BroadcastReceiver {
 
         for (Geofence geofence : triggeringGeofences) {
             String zoneId = geofence.getRequestId();
-            
+
             if (geofenceTransition == Geofence.GEOFENCE_TRANSITION_ENTER) {
                 // Start detailed monitoring service
                 startZoneMonitoring(context, zoneId);
@@ -43,7 +43,7 @@ public class GeofenceBroadcastReceiver extends BroadcastReceiver {
     private void startZoneMonitoring(Context context, String zoneId) {
         Intent serviceIntent = new Intent(context, ZoneMonitoringService.class);
         serviceIntent.putExtra("zoneId", zoneId);
-        
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             context.startForegroundService(serviceIntent);
         } else {

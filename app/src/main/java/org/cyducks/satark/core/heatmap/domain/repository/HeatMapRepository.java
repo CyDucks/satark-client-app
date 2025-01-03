@@ -7,6 +7,7 @@ import android.os.Looper;
 import android.util.JsonReader;
 import android.util.Log;
 
+import androidx.annotation.NonNull;
 import androidx.room.Room;
 
 import com.google.android.gms.maps.GoogleMap;
@@ -46,27 +47,39 @@ import io.reactivex.rxjava3.core.Single;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 
 public class HeatMapRepository {
-    private static final String GEOJSON_FILENAME = "crimes.geojson";
-    private static final String FIREBASE_PATH = "heatmap/crimes.geojson";
+    private static String GEOJSON_FILENAME = "crimes.geojson";
+    private static String FIREBASE_PATH = "heatmap/" + GEOJSON_FILENAME;
     private static final String TAG = "HeatMapRepository";
     private static final int BATCH_SIZE = Runtime.getRuntime().maxMemory() < 100 * 1024 * 1024 ?
             500 : 100;
 
     private final Context context;
     private final FirebaseStorage firebaseStorage;
-    private final AppDatabase database;
     private final FileMetaDataDao fileMetaDataDao;
     private final CrimeLocationDao crimeLocationDao;
     private final ExecutorService executorService;
 
-    public HeatMapRepository(Context context) {
+    public HeatMapRepository(Context context, @NonNull String city) {
         this.context = context;
         this.firebaseStorage = FirebaseStorage.getInstance();
-        this.database = Room.databaseBuilder(context, AppDatabase.class, "heatmap-db")
+        AppDatabase database = Room.databaseBuilder(context, AppDatabase.class, "heatmap-db")
                 .enableMultiInstanceInvalidation().build();
         this.fileMetaDataDao = database.fileMetaDataDao();
         this.crimeLocationDao = database.crimeLocationDao();
         this.executorService = Executors.newFixedThreadPool(5);
+
+        switch (city) {
+            case "Nagpur":
+                GEOJSON_FILENAME = "crimes.geojson";
+                break;
+            case "Delhi":
+                GEOJSON_FILENAME = "delhi_crime_points.geojson";
+                break;
+            default:
+                throw new UnsupportedOperationException("Unsupported city: " + city);
+        }
+
+        FIREBASE_PATH = "heatmap/" + GEOJSON_FILENAME;
     }
 
     public Single<List<CrimeClusterItem>> getLocationsInRegion(LatLngBounds bounds) {

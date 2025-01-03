@@ -7,6 +7,7 @@ import android.location.Location;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
+import android.util.Log;
 
 import androidx.annotation.Nullable;
 import androidx.core.app.ActivityCompat;
@@ -27,6 +28,7 @@ public class ZoneMonitoringService extends Service {
     private static final String CHANNEL_ID = "zone_monitoring";
     private static final int NOTIFICATION_ID = 1;
 
+    private static final String TAG="ZoneMonitoringService";
     private Handler handler;
     private ZoneCache zoneCache;
     private String monitoredZoneId;
@@ -57,6 +59,7 @@ public class ZoneMonitoringService extends Service {
             @Override
             public void run() {
                 checkCurrentLocation();
+                Log.d(TAG, "run: in zone created successfully phase ");
                 handler.postDelayed(this, MONITORING_INTERVAL);
             }
         });
@@ -66,11 +69,11 @@ public class ZoneMonitoringService extends Service {
         if (ActivityCompat.checkSelfPermission(this,
                 android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             fusedLocationClient.getCurrentLocation(Priority.PRIORITY_HIGH_ACCURACY, null)
-                .addOnSuccessListener(location -> {
-                    if (location != null) {
-                        checkZoneContainment(location);
-                    }
-                });
+                    .addOnSuccessListener(location -> {
+                        if (location != null) {
+                            checkZoneContainment(location);
+                        }
+                    });
         }
     }
 
@@ -115,7 +118,7 @@ public class ZoneMonitoringService extends Service {
     private void updateZoneStatus(ConflictZone conflictZone, String level) {
         // Show notification
         notificationHelper.showZoneNotification(level, conflictZone);
-        
+
         // Update server if needed
         // ApiClient.getClient().create(ZoneApiService.class)...
     }

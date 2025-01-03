@@ -12,13 +12,13 @@ import androidx.annotation.IdRes;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.NavController;
 import androidx.navigation.NavOptions;
-import androidx.navigation.fragment.NavHostFragment;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 
+//import org.cyducks.satark.Manifest;
 import org.cyducks.satark.R;
 import org.cyducks.satark.databinding.FragmentOwnerDashboardBinding;
 
@@ -46,6 +46,7 @@ public class OwnerDashboardFragment extends Fragment {
         initializeFcmToken();
 
     }
+
 
     private void initializeFcmToken() {
         FirebaseFirestore dbInstance = FirebaseFirestore.getInstance();
