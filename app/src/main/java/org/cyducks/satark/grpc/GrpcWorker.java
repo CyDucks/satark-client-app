@@ -74,6 +74,6 @@ public class GrpcWorker extends Worker {
     }
 
     private ManagedChannel getChannel(Data inputData) {
-        return ManagedChannelBuilder.forAddress(GRPC_SERVER_ADDRESS, 9000).usePlaintext().build();
+        return ManagedChannelBuilder.forAddress(GRPC_SERVER_ADDRESS, 9095).usePlaintext().build();
     }
 }

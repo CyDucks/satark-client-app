@@ -2,6 +2,7 @@ package org.cyducks.satark.network.repository;
 
 import android.util.Log;
 
+import org.cyducks.satark.AppConstants;
 import org.cyducks.satark.network.request.SafetyScoreRequest;
 import org.cyducks.satark.network.service.SafetyScoreService;
 
@@ -18,7 +19,7 @@ public class SafetyScoreRepository {
 
     public SafetyScoreRepository() {
         Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl("https://satark-module-1-backend.onrender.com")
+                .baseUrl(AppConstants.SAFETY_SCORE_URL)
                 .addConverterFactory(GsonConverterFactory.create())
                 .addCallAdapterFactory(RxJava3CallAdapterFactory.create())
                 .build();

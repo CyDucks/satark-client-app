@@ -28,8 +28,8 @@ public class NotificationHelper {
 
     public NotificationHelper(Context context) {
         this.context = context;
-        this.notificationManager = (NotificationManager) 
-            context.getSystemService(Context.NOTIFICATION_SERVICE);
+        this.notificationManager = (NotificationManager)
+                context.getSystemService(Context.NOTIFICATION_SERVICE);
         createNotificationChannels();
     }
 
@@ -37,25 +37,25 @@ public class NotificationHelper {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             // Alert Channel
             NotificationChannel alertChannel = new NotificationChannel(
-                ZONE_CHANNEL_ID,
-                "Zone Alerts",
-                NotificationManager.IMPORTANCE_HIGH
+                    ZONE_CHANNEL_ID,
+                    "Zone Alerts",
+                    NotificationManager.IMPORTANCE_HIGH
             );
             alertChannel.setDescription("Alerts for zone transitions");
             alertChannel.enableVibration(true);
             alertChannel.setVibrationPattern(new long[]{0, 500, 250, 500});
-            
+
             // Monitoring Channel
             NotificationChannel monitorChannel = new NotificationChannel(
-                MONITORING_CHANNEL_ID,
-                "Zone Monitoring",
-                NotificationManager.IMPORTANCE_LOW
+                    MONITORING_CHANNEL_ID,
+                    "Zone Monitoring",
+                    NotificationManager.IMPORTANCE_LOW
             );
             monitorChannel.setDescription("Ongoing zone monitoring status");
             monitorChannel.setShowBadge(false);
-            
+
             notificationManager.createNotificationChannels(
-                Arrays.asList(alertChannel, monitorChannel)
+                    Arrays.asList(alertChannel, monitorChannel)
             );
         }
     }
@@ -63,55 +63,55 @@ public class NotificationHelper {
     public Notification createMonitoringNotification() {
         Intent notificationIntent = new Intent(context, MainActivity.class);
         PendingIntent pendingIntent = PendingIntent.getActivity(
-            context, 0, notificationIntent,
-            PendingIntent.FLAG_IMMUTABLE
+                context, 0, notificationIntent,
+                PendingIntent.FLAG_IMMUTABLE
         );
 
         return new NotificationCompat.Builder(context, MONITORING_CHANNEL_ID)
-            .setContentTitle("Zone Monitoring Active")
-            .setContentText("Monitoring nearby zones")
-            .setSmallIcon(R.drawable.lock_icon)
-            .setOngoing(true)
-            .setContentIntent(pendingIntent)
-            .setPriority(NotificationCompat.PRIORITY_LOW)
-            .build();
+                .setContentTitle("Zone Monitoring Active")
+                .setContentText("Monitoring nearby zones")
+                .setSmallIcon(R.drawable.lock_icon)
+                .setOngoing(true)
+                .setContentIntent(pendingIntent)
+                .setPriority(NotificationCompat.PRIORITY_LOW)
+                .build();
     }
 
     public void showZoneNotification(String level, ConflictZone zone) {
         // Get notification style based on level
         NotificationStyle style = getNotificationStyle(level);
-        
+
         // Create notification intent
         Intent notificationIntent = new Intent(context, MainActivity.class);
         notificationIntent.putExtra("zone_id", zone.getId());
         PendingIntent pendingIntent = PendingIntent.getActivity(
-            context, 0, notificationIntent,
-            PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+                context, 0, notificationIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
         );
 
         // Build notification
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context, ZONE_CHANNEL_ID)
-            .setContentTitle(style.title)
-            .setContentText(style.message)
-            .setSmallIcon(style.icon)
-            .setColor(style.color)
-            .setAutoCancel(true)
-            .setContentIntent(pendingIntent)
-            .setPriority(NotificationCompat.PRIORITY_HIGH)
-            .setCategory(NotificationCompat.CATEGORY_ALARM);
+                .setContentTitle(style.title)
+                .setContentText(style.message)
+                .setSmallIcon(style.icon)
+                .setColor(style.color)
+                .setAutoCancel(true)
+                .setContentIntent(pendingIntent)
+                .setPriority(NotificationCompat.PRIORITY_HIGH)
+                .setCategory(NotificationCompat.CATEGORY_ALARM);
 
         // Add actions based on level
         if ("RED".equals(level)) {
             // Add emergency action
-            Intent emergencyIntent = new Intent(context, MainActivity.class);
-            PendingIntent emergencyPendingIntent = PendingIntent.getService(
-                context, 0, emergencyIntent,
-                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+            Intent emergencyIntent = new Intent(context, StopMonitoringReceiver.class);
+            PendingIntent emergencyPendingIntent = PendingIntent.getBroadcast(
+                    context, 0, emergencyIntent,
+                    PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
             );
             builder.addAction(
-                R.drawable.lock_icon,
-                "Emergency Contact",
-                emergencyPendingIntent
+                    R.drawable.lock_icon,
+                    "Okay, Got it",
+                    emergencyPendingIntent
             );
         }
 
@@ -122,31 +122,31 @@ public class NotificationHelper {
         switch (level) {
             case "RED":
                 return new NotificationStyle(
-                    "High Risk Zone Alert!",
-                    "You are in a high-risk area. Please exercise extreme caution.",
-                    R.drawable.edit_icon,
-                    Color.RED
+                        "High Risk Zone Alert!",
+                        "You are in a high-risk area. Please exercise extreme caution.",
+                        R.drawable.edit_icon,
+                        Color.RED
                 );
             case "ORANGE":
                 return new NotificationStyle(
-                    "Warning: Medium Risk Zone",
-                    "You are approaching a high-risk area.",
-                    R.drawable.lock_icon,
-                    Color.parseColor("#FF8C00")
+                        "Warning: Medium Risk Zone",
+                        "You are approaching a high-risk area.",
+                        R.drawable.lock_icon,
+                        Color.parseColor("#FF8C00")
                 );
             case "YELLOW":
                 return new NotificationStyle(
-                    "Caution: Monitored Zone",
-                    "You have entered a monitored area.",
-                    R.drawable.email_icon,
-                    Color.YELLOW
+                        "Caution: Monitored Zone",
+                        "You have entered a monitored area.",
+                        R.drawable.email_icon,
+                        Color.YELLOW
                 );
             default:
                 return new NotificationStyle(
-                    "Zone Update",
-                    "Zone status has changed.",
-                    R.drawable.phone_icon,
-                    Color.BLUE
+                        "Zone Update",
+                        "Zone status has changed.",
+                        R.drawable.phone_icon,
+                        Color.BLUE
                 );
         }
     }

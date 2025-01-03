@@ -13,7 +13,7 @@
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Heatmap Settings"
+        android:text="Settings"
         android:textSize="20sp"
         android:textStyle="bold"
         android:layout_marginBottom="16dp"/>
@@ -23,13 +23,14 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Show Heatmap"
-        android:layout_marginBottom="16dp"/>
+        />
 
     <LinearLayout
         android:id="@+id/filter_container"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
+        android:layout_marginTop="@dimen/_12sdp"
         android:visibility="gone"
         >
 
@@ -86,6 +87,40 @@
 
     </LinearLayout>
 
+    <com.google.android.material.divider.MaterialDivider
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/_16sdp"
+        />
 
+
+    <com.google.android.material.switchmaterial.SwitchMaterial
+        android:id="@+id/mode_switch"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Simulation Mode"
+        android:layout_marginTop="16dp"/>
+
+    <com.google.android.material.divider.MaterialDivider
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/_16sdp"
+        />
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/city_drop_down"
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:hint="City">
+
+        <AutoCompleteTextView
+            android:id="@+id/city_autocomplete"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="none"/>
+
+    </com.google.android.material.textfield.TextInputLayout>
 
 </LinearLayout>

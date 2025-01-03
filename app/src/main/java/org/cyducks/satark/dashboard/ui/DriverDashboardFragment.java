@@ -1,8 +1,6 @@
 package org.cyducks.satark.dashboard.ui;
 
 
-import static androidx.core.content.ContextCompat.startForegroundService;
-
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
@@ -12,6 +10,9 @@ import android.content.Intent;
 import android.content.IntentSender;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.location.Address;
+import android.location.Geocoder;
+import android.location.Location;
 import android.location.LocationManager;
 import android.os.Build;
 import android.os.Bundle;
@@ -35,6 +36,8 @@ import androidx.work.WorkManager;
 
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.common.api.ResolvableApiException;
+import com.google.android.gms.location.CurrentLocationRequest;
+import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.LocationSettingsRequest;
@@ -42,6 +45,9 @@ import com.google.android.gms.location.LocationSettingsResponse;
 import com.google.android.gms.location.LocationSettingsStates;
 import com.google.android.gms.location.LocationSettingsStatusCodes;
 import com.google.android.gms.location.Priority;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.tasks.CancellationToken;
+import com.google.android.gms.tasks.OnTokenCanceledListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
@@ -54,10 +60,12 @@ import org.cyducks.satark.AuthActivity;
 import org.cyducks.satark.R;
 import org.cyducks.satark.auth.viewmodel.AuthViewModel;
 import org.cyducks.satark.core.geofence.ZoneMonitoringService;
+import org.cyducks.satark.core.heatmap.domain.viewmodel.SettingsViewModel;
 import org.cyducks.satark.dashboard.viewmodel.DashboardViewModel;
 import org.cyducks.satark.databinding.FragmentDriverDashboardBinding;
 import org.cyducks.satark.util.UserRole;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -71,7 +79,8 @@ import java.util.Objects;
 public class DriverDashboardFragment extends Fragment {
 
     private static final String TAG = "MYAPP";
-    @SuppressLint("InlinedApi") final String[] REQUIRED_PERMISSIONS = {
+    @SuppressLint("InlinedApi")
+    final String[] REQUIRED_PERMISSIONS = {
             Manifest.permission.ACCESS_FINE_LOCATION,
             Manifest.permission.ACCESS_BACKGROUND_LOCATION,
             Manifest.permission.POST_NOTIFICATIONS
@@ -116,7 +125,7 @@ public class DriverDashboardFragment extends Fragment {
 
         dashboardViewModel = new ViewModelProvider(requireActivity()).get(DashboardViewModel.class);
 
-        if(getArguments() != null) {
+        if (getArguments() != null) {
             this.userRole = UserRole.valueOf(getArguments().getString("role"));
         } else {
             this.userRole = UserRole.UNASSIGNED;
@@ -127,7 +136,7 @@ public class DriverDashboardFragment extends Fragment {
         FirebaseMessaging.getInstance()
                 .subscribeToTopic("zone_updates")
                 .addOnCompleteListener(task -> {
-                    if(task.isSuccessful()) {
+                    if (task.isSuccessful()) {
                         Log.d(TAG, "onCreate: Subscribed to zone updates");
                     } else {
                         Log.d(TAG, "onCreate: " + task.getException());
@@ -166,7 +175,6 @@ public class DriverDashboardFragment extends Fragment {
     }
 
 
-
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -175,7 +183,7 @@ public class DriverDashboardFragment extends Fragment {
         AuthViewModel authViewModel = new ViewModelProvider(requireActivity()).get(AuthViewModel.class);
 
         authViewModel.getCurrentUser().observe(getViewLifecycleOwner(), firebaseUser -> {
-            if(firebaseUser == null) {
+            if (firebaseUser == null) {
                 Intent intent = new Intent(requireContext(), AuthActivity.class);
                 startActivity(intent);
                 requireActivity().finish();
@@ -193,10 +201,7 @@ public class DriverDashboardFragment extends Fragment {
         });
 
 
-
-
         // Inflate the layout for this fragment
-
 
 
         return viewBinding.getRoot();
@@ -206,12 +211,12 @@ public class DriverDashboardFragment extends Fragment {
     public void onStart() {
         super.onStart();
 
-        if(!hasLocationPermissions()) {
+        if (!hasLocationPermissions()) {
             List<String> permissions = new ArrayList<>();
             permissions.add(Manifest.permission.ACCESS_COARSE_LOCATION);
             permissions.add(Manifest.permission.ACCESS_FINE_LOCATION);
 
-            if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 permissions.add(Manifest.permission.POST_NOTIFICATIONS);
             }
             String[] permissionArray = permissions.toArray(new String[0]);
@@ -220,7 +225,7 @@ public class DriverDashboardFragment extends Fragment {
                     .requestPermissions(requireActivity(), permissionArray, 111);
         }
 
-        if(!hasGpsPermissions()) {
+        if (!hasGpsPermissions()) {
             LocationRequest dummyRequest = new LocationRequest.Builder(3000L)
                     .setPriority(Priority.PRIORITY_HIGH_ACCURACY)
                     .build();
@@ -242,9 +247,8 @@ public class DriverDashboardFragment extends Fragment {
 
                                         resolvable.startResolutionForResult(requireActivity(), 113);
 
-                                    } catch (IntentSender.SendIntentException sie) {
-
-                                    } catch (ClassCastException cce) {
+                                    } catch (IntentSender.SendIntentException |
+                                             ClassCastException ignored) {
 
                                     }
                                     break;
@@ -255,7 +259,13 @@ public class DriverDashboardFragment extends Fragment {
                     });
         }
 
+        SettingsViewModel settingsViewModel = new ViewModelProvider(requireActivity()).get(SettingsViewModel.class);
+        SharedPreferences prefs = requireActivity().getSharedPreferences("app_prefs", Context.MODE_PRIVATE);
+        settingsViewModel.setUserCity(prefs.getString("user_city", "Nagpur"));
+
     }
+
+
 
     @Override
     public void onStop() {

@@ -3,6 +3,7 @@ package org.cyducks.satark.dashboard.moderator.ui;
 import static org.cyducks.satark.AppConstants.REST_SERVER_BASE_URL;
 
 import android.annotation.SuppressLint;
+import android.content.SharedPreferences;
 import android.graphics.Point;
 import android.os.Bundle;
 
@@ -18,13 +19,26 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
 
+import org.cyducks.satark.core.MapConstants;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+import java.util.ArrayList;
+import java.util.List;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.maps.android.PolyUtil;
 
 import org.cyducks.satark.core.conflictzone.ZoneManager;
@@ -33,8 +47,8 @@ import org.cyducks.satark.core.conflictzone.model.GeoPoint;
 import org.cyducks.satark.core.grid.GridManager;
 import org.cyducks.satark.databinding.FragmentZoneCreationBinding;
 import org.cyducks.satark.network.service.GeofenceApiService;
+import org.cyducks.satark.util.MassReportLocations;
 
-import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -46,27 +60,22 @@ import retrofit2.adapter.rxjava3.RxJava3CallAdapterFactory;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 public class ZoneCreationFragment extends Fragment implements OnMapReadyCallback {
-    private static final class MapConstants {
-        static final LatLngBounds NAGPUR_BOUNDS = new LatLngBounds(
-                new LatLng(21.076, 78.926),
-                new LatLng(21.214, 79.186)
-        );
-        static final LatLng INITIAL_CENTER = new LatLng(21.14158, 79.0882);
-        static final float INITIAL_ZOOM = 15f;
-        static final float MIN_ZOOM = 15f;
-    }
-
     private FragmentZoneCreationBinding viewBinding;
     private GridManager gridManager;
     private ZoneManager zoneManager;
     private GoogleMap googleMap;
     private boolean isConfirmationMode = false;
     private GeofenceApiService apiService;
+    private BroadcastReceiver massReportReceiver;
+    private List<Marker> reportMarkers = new ArrayList<>();
+    private static final String TAG = "ZoneCreation";
+    private String city;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setupBackPressHandler();
+        setupBroadcastReceiver();
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(REST_SERVER_BASE_URL)
                 .addConverterFactory(GsonConverterFactory.create())
@@ -74,8 +83,26 @@ public class ZoneCreationFragment extends Fragment implements OnMapReadyCallback
                 .build();
 
         apiService = retrofit.create(GeofenceApiService.class);
+        SharedPreferences preferences = requireActivity()
+                .getSharedPreferences("app_prefs", Context.MODE_PRIVATE);
+
+
+        if(preferences.contains("user_city")) {
+            city = preferences.getString("user_city", null);
+        }
     }
 
+
+    @Override
+    public void onDestroy() {
+        try {
+            LocalBroadcastManager.getInstance(requireContext())
+                    .unregisterReceiver(massReportReceiver);
+        } catch (Exception e) {
+            Log.e(TAG, "Error unregistering receiver", e);
+        }
+        super.onDestroy();
+    }
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -92,6 +119,7 @@ public class ZoneCreationFragment extends Fragment implements OnMapReadyCallback
 
     @Override
     public void onDestroyView() {
+        clearReportMarkers();
         super.onDestroyView();
         if (zoneManager != null) {
             zoneManager.clearPreviews(gridManager.getSelectedPolygons());
@@ -107,6 +135,18 @@ public class ZoneCreationFragment extends Fragment implements OnMapReadyCallback
         initializeManagers();
         setupUIListeners();
         setupTouchListener();
+
+        if (MassReportLocations.getInstance().shouldShowMarkers()) {
+            String locationsJson = MassReportLocations.getInstance().getLocations();
+            if (locationsJson != null) {
+                try {
+                    showReportMarkers(locationsJson);
+                    MassReportLocations.getInstance().markMarkersShown(); // Prevent showing again until next button click
+                } catch (JSONException e) {
+                    Log.e(TAG, "Error showing markers", e);
+                }
+            }
+        }
     }
 
     // Setup Methods
@@ -121,10 +161,126 @@ public class ZoneCreationFragment extends Fragment implements OnMapReadyCallback
     }
 
     private void setupMap() {
-        googleMap.setLatLngBoundsForCameraTarget(MapConstants.NAGPUR_BOUNDS);
-        googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(
-                MapConstants.INITIAL_CENTER, MapConstants.INITIAL_ZOOM));
+        if(city == null) {
+            throw new IllegalStateException("user city not available");
+        }
+
+        switch (city) {
+            case "Delhi":
+            case "New Delhi":
+                Log.d("TAG", "setupMap: ");
+                googleMap.setLatLngBoundsForCameraTarget(MapConstants.DELHI_BOUNDS);
+                googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(
+                        MapConstants.DELHI_CENTER, MapConstants.INITIAL_ZOOM));
+                break;
+
+            case "Nagpur":
+            case "Nagpur City":
+                googleMap.setLatLngBoundsForCameraTarget(MapConstants.NAGPUR_BOUNDS);
+                googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(
+                        MapConstants.NAGPUR_CENTER, MapConstants.INITIAL_ZOOM));
+                break;
+
+            case "Pune":
+                googleMap.setLatLngBoundsForCameraTarget(MapConstants.PUNE_BOUNDS);
+                googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(
+                        MapConstants.PUNE_CENTER, MapConstants.INITIAL_ZOOM));
+                break;
+
+            case "Mumbai":
+                googleMap.setLatLngBoundsForCameraTarget(MapConstants.MUMBAI_BOUNDS);
+                googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(MapConstants.MUMBAI_CENTER, MapConstants.INITIAL_ZOOM));
+                break;
+
+            default:
+                throw new IllegalArgumentException("Invalid City");
+        }
+
         googleMap.setMinZoomPreference(MapConstants.MIN_ZOOM);
+    }
+
+    private void setupBroadcastReceiver() {
+        massReportReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                Log.d(TAG, "Received broadcast");
+                String locationsJson = intent.getStringExtra("locations");
+                Log.d(TAG, "Locations received: " + locationsJson);
+
+                if (locationsJson != null) {
+                    requireActivity().runOnUiThread(() -> {
+                        try {
+                            showReportMarkers(locationsJson);
+                        } catch (JSONException e) {
+                            Log.e(TAG, "Error parsing locations", e);
+                        }
+                    });
+                }
+            }
+        };
+
+        LocalBroadcastManager.getInstance(requireContext())
+                .registerReceiver(massReportReceiver,
+                        new IntentFilter("org.cyducks.satark.MASS_REPORT_EVENT"));
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        LocalBroadcastManager.getInstance(requireContext())
+                .registerReceiver(massReportReceiver,
+                        new IntentFilter("org.cyducks.satark.MASS_REPORT_EVENT"));
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        LocalBroadcastManager.getInstance(requireContext())
+                .unregisterReceiver(massReportReceiver);
+    }
+
+    private void showReportMarkers(String locationsJson) throws JSONException {
+        // Clear existing report markers
+        clearReportMarkers();
+        Log.d(TAG, "Adding markers from JSON: " + locationsJson);
+
+        // Parse JSON array
+        JSONArray locations = new JSONArray(locationsJson);
+
+        JSONObject firstLocation = locations.getJSONObject(0);
+        double latitude = firstLocation.getDouble("lat");
+        double longitude = firstLocation.getDouble("lng");
+
+        googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(latitude, longitude), MapConstants.INITIAL_ZOOM));
+
+        for (int i = 0; i < locations.length(); i++) {
+            JSONObject location = locations.getJSONObject(i);
+            double lat = location.getDouble("lat");
+            double lng = location.getDouble("lng");
+
+            if (googleMap != null) {
+                Log.d(TAG, "Adding marker at: " + lat + ", " + lng);
+
+                MarkerOptions markerOptions = new MarkerOptions()
+                        .position(new LatLng(lat, lng))
+                        .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
+
+                Marker marker = googleMap.addMarker(markerOptions);
+                if (marker != null) {
+                    reportMarkers.add(marker);
+                }
+            } else {
+                Log.e(TAG, "Google Map is null");
+            }
+        }
+    }
+
+    private void clearReportMarkers() {
+        Log.d(TAG, "Clearing " + reportMarkers.size() + " markers");
+        for (Marker marker : reportMarkers) {
+            marker.remove();
+        }
+        reportMarkers.clear();
     }
 
     private void initializeManagers() {

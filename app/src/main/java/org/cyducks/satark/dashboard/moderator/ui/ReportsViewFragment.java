@@ -1,9 +1,7 @@
 package org.cyducks.satark.dashboard.moderator.ui;
 
-import static org.cyducks.satark.AppConstants.GRPC_SERVER_ADDRESS;
-
 import android.os.Bundle;
-
+import static org.cyducks.satark.AppConstants.GRPC_SERVER_ADDRESS;
 import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -21,20 +19,15 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.maps.android.clustering.ClusterItem;
-import com.google.maps.android.clustering.ClusterManager;
 
 import org.cyducks.generated.Point;
 import org.cyducks.generated.Report;
 import org.cyducks.generated.ReportServiceGrpc;
-import org.cyducks.satark.R;
 import org.cyducks.satark.databinding.FragmentReportsViewBinding;
 import org.cyducks.satark.grpc.GrpcRunnable;
 import org.cyducks.satark.grpc.ReportStreamRunnable;
 import org.cyducks.satark.util.DynamicClusterManager;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
 import io.grpc.ManagedChannel;
@@ -119,6 +112,7 @@ public class ReportsViewFragment extends Fragment implements OnMapReadyCallback 
 
         if(!requestSent.get()) {
             GrpcRunnable fetchReportsRunnable = new ReportStreamRunnable("H7trkTwIVzOHMKYLryOgIkZ8vn23", reportStreamObserver);
+
             ManagedChannel managedChannel = ManagedChannelBuilder.forAddress(GRPC_SERVER_ADDRESS, 9000).usePlaintext().build();
 
             try {
@@ -133,7 +127,7 @@ public class ReportsViewFragment extends Fragment implements OnMapReadyCallback 
 
     @Override
     public void onMapReady(@NonNull GoogleMap googleMap) {
-          this.googleMap = googleMap;
+        this.googleMap = googleMap;
 
         googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(21.1458,79.0882), 12f));
         googleMap.addMarker(new MarkerOptions().position(new LatLng(22.1948,76.8392)));
@@ -142,36 +136,4 @@ public class ReportsViewFragment extends Fragment implements OnMapReadyCallback 
 
     }
 
-    class ReportMarker implements ClusterItem {
-        private final LatLng position;
-
-
-        public ReportMarker(double lat, double lng) {
-            this.position = new LatLng(lat, lng);
-        }
-
-        @NonNull
-        @Override
-        public LatLng getPosition() {
-            return position;
-        }
-
-        @Nullable
-        @Override
-        public String getTitle() {
-            return "";
-        }
-
-        @Nullable
-        @Override
-        public String getSnippet() {
-            return "";
-        }
-
-        @Nullable
-        @Override
-        public Float getZIndex() {
-            return 0f;
-        }
-    }
 }
