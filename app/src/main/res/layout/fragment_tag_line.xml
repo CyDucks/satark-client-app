@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/tag_line_fragment"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -24,9 +25,6 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|center"
-        android:layout_marginStart="@dimen/_15sdp"
-        android:layout_marginEnd="@dimen/_15sdp"
-        android:layout_marginBottom="@dimen/_70sdp"
         android:gravity="center"
         android:text="Satark"
         android:textColor="@color/black"
@@ -34,8 +32,8 @@
         android:textStyle="bold"
         app:layout_constraintBottom_toTopOf="@+id/login"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/shapeableImageView" />
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/login"
@@ -44,14 +42,15 @@
         android:layout_gravity="bottom"
         android:layout_marginStart="@dimen/_15sdp"
         android:layout_marginEnd="@dimen/_15sdp"
-        app:backgroundTint="@color/primary"
+        android:layout_marginBottom="112dp"
         android:text="@string/login"
         android:textAllCaps="false"
         android:textColor="@color/white"
         android:textSize="@dimen/_22ssp"
+        app:backgroundTint="@color/primary"
         app:layout_constraintBottom_toTopOf="@+id/guideline6"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintHorizontal_bias="1.0"
         app:layout_constraintStart_toStartOf="parent" />
 
     <androidx.constraintlayout.widget.Guideline
@@ -60,7 +59,6 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         app:layout_constraintGuide_percent="0.96" />
-
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

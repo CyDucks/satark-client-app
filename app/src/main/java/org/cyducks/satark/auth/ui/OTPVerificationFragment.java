@@ -1,14 +1,17 @@
 package org.cyducks.satark.auth.ui;
 
 import android.os.Bundle;
+
+import androidx.annotation.NonNull;
+import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
+
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import androidx.fragment.app.Fragment;
-import androidx.lifecycle.ViewModelProvider;
-
+import org.cyducks.satark.AppConstants;
 import org.cyducks.satark.auth.model.UserInfo;
 import org.cyducks.satark.auth.viewmodel.AuthViewModel;
 import org.cyducks.satark.databinding.FragmentOtpVerificationBinding;
@@ -16,7 +19,6 @@ import org.cyducks.satark.databinding.FragmentOtpVerificationBinding;
 
 public class OTPVerificationFragment extends Fragment {
 
-    private static final String TAG = "OTPVerificationFragment";
     FragmentOtpVerificationBinding viewBinding;
 
     public OTPVerificationFragment() {
@@ -30,7 +32,7 @@ public class OTPVerificationFragment extends Fragment {
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
 
@@ -62,7 +64,7 @@ public class OTPVerificationFragment extends Fragment {
             String otp = viewBinding.otpView.getOtp();
 
             if(otp.length() < 6) {
-                Log.d(TAG, "verifyOtp: otp length is less than 6");
+                Log.d(AppConstants.TAG, "verifyOtp: otp length is less than 6");
                 return;
             }
 
@@ -81,7 +83,7 @@ public class OTPVerificationFragment extends Fragment {
 
         }
         else {
-            Log.d(TAG, "verifyOtp: arguments are empty");
+            Log.d(AppConstants.TAG, "verifyOtp: arguments are empty");
         }
     }
 }
