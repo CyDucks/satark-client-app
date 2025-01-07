@@ -47,7 +47,7 @@ public class SafetyScoreRepository {
                     } catch (NumberFormatException e) {
                         double score = Double.parseDouble(safetyScoreResponse.getScore());
                         Log.d("TAG", "getSafetyScore: " + score);
-                        return (int) (score * 100);
+                        return (int) (score);
                     }
                 });
     }
