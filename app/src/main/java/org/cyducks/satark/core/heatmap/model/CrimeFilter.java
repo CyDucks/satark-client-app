@@ -8,7 +8,7 @@ public class CrimeFilter {
 
     public CrimeFilter() {
         selectedCrimeTypes = new HashSet<>();
-        selectedCrimeTypes.add("Theft");
+        selectedCrimeTypes.add("theft");
     }
 
     public void toggleCrimeType(String crimeType, boolean selected) {

@@ -6,6 +6,14 @@ plugins {
 }
 
 android {
+    signingConfigs {
+        release {
+            storeFile file('C:\\Users\\jaipr\\Desktop\\satark-keystore.jks')
+            storePassword 'adminpass'
+            keyAlias 'release-key'
+            keyPassword 'adminpass'
+        }
+    }
     namespace 'org.cyducks.satark'
     compileSdk 34
 
@@ -28,6 +36,7 @@ android {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.release
         }
     }
     compileOptions {
