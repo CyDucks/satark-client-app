@@ -270,8 +270,10 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
         });
 
         settingsViewModel.getOperationMode().observe(getViewLifecycleOwner(), mode -> {
+            if(mode != simulationMode.get()) {
+                setMapLocation(mode, googleMap);
+            }
             simulationMode.set(mode);
-            setMapLocation(mode, googleMap);
         });
 
         googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(21.1458, 79.0882), 15f));

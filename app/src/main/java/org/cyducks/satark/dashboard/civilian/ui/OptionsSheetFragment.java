@@ -27,6 +27,8 @@ import org.cyducks.satark.R;
 import org.cyducks.satark.core.heatmap.domain.viewmodel.SettingsViewModel;
 import org.cyducks.satark.databinding.FragmentOptionsSheetBinding;
 
+import java.util.Locale;
+
 
 public class OptionsSheetFragment extends BottomSheetDialogFragment {
     FragmentOptionsSheetBinding viewBinding;
@@ -64,7 +66,7 @@ public class OptionsSheetFragment extends BottomSheetDialogFragment {
             for (int i = 0; i < viewBinding.chipGroupFilters.getChildCount(); i++) {
                 Chip chip = (Chip) viewBinding.chipGroupFilters.getChildAt(i);
                 chip.setOnCheckedChangeListener(null);
-                chip.setChecked(selectedTypes.contains(chip.getText().toString()));
+                chip.setChecked(selectedTypes.contains(chip.getText().toString().toLowerCase(Locale.ROOT)));
                 setupChipListener(chip);
             }
         });
@@ -110,7 +112,7 @@ public class OptionsSheetFragment extends BottomSheetDialogFragment {
 
     private void setupChipListener(Chip chip) {
         chip.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            viewModel.toggleCrimeType(chip.getText().toString(), isChecked);
+            viewModel.toggleCrimeType(chip.getText().toString().toLowerCase(Locale.ROOT), isChecked);
         });
     }
 
