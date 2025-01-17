@@ -30,8 +30,8 @@ public final class MapConstants {
     );
 
     public static final LatLngBounds DELHI_BOUNDS = new LatLngBounds(
-            new LatLng(28.556282629587912, 77.1703858791839), // Southwest corner (approx.)
-            new LatLng(28.56367050505917, 77.17918850578414)  // Northeast corner (approx.)
+            new LatLng(28.57834095880004, 77.12306764988563), // Southwest corner (approx.)
+            new LatLng(28.583417921345834, 77.13163119280044)  // Northeast corner (approx.)
     );
 
     public static final LatLngBounds MUMBAI_BOUNDS = new LatLngBounds(
