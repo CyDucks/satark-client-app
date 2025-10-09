@@ -1,1 +1,1 @@
-# SATRAK - Enhanced Public Safety Android App
+# SATARK - Enhanced Public Safety Android App
